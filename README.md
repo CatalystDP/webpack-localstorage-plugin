@@ -41,7 +41,7 @@
 			}
 		}
 	```
-将如上manifest引入到html当中
+    将如上manifest引入到html当中
 
 	```
 	window.localcacheManifest={
@@ -84,13 +84,14 @@
 - 在使用require.ensure的地方，外面需要套上一层
 
 	```
-window.webpack_local_cache.loadChunks(['asyncLib'], function(result) {
+    window.webpack_local_cache.loadChunks(['asyncLib'], function(result) {
         console.log('load status ',result);
         require.ensure([], function (require) {
              require('path to async module');
         }, 'asyncLib');
     });
 	```
+  
   这样做的原理是require.ensure由webpack静态分析，编译出named async chunk，使得插件可以处理这个chunk，再由localcacheHelper去加载这个chunk并缓存。
 
 #### 0x03 API
