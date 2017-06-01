@@ -10,6 +10,7 @@
             return util.is(obj, 'function');
         },
         log: function () {
+            if(option && option.disableLog) return;
             console.log.apply(console, arguments);
         },
         addParams: function (obj) {
@@ -102,6 +103,7 @@
             this.onload = null;
             ++count;
             if (count == len) {
+                var failedChunks=[];
                 chunks.forEach(function (chunk) {
                     var installedChunk = installedChunks[chunk];
                     if (installedChunk && !installedChunk.executed) {
@@ -109,13 +111,28 @@
                         util.isFunction(installedChunk.fn) && installedChunk.fn.call(option.context||null);//context in fn
                         installedChunk.executed = true;
                     }
+                    if(!installedChunk){
+                        //chunk load fail call reporter
+                        failedChunks.push(chunk);
+                    }
                 });
-                util.isFunction(onLoadEnd) && onLoadEnd();
+                var loadStatus={
+                    status:'success'
+                };
+                if(failedChunks.length>0){
+                    loadStatus.status='failed';
+                    loadStatus.failedChunks=failedChunks;
+                }
+                util.isFunction(onLoadEnd) && onLoadEnd(loadStatus);
             }
         }
         for (var i = 0; i < len; ++i) {
             var chunkName = chunks[i];
             var chunkInfo = manifest[chunkName];
+            if(!chunkInfo){
+                onLoad.call({});
+                continue;
+            }
             if (installedChunks[chunkName]) {
                 util.log('chunk ' + chunkName + ' is installed');
                 onLoad.call({});
@@ -164,6 +181,10 @@
         try {
             return localStorage.getItem(cachePrefix + chunkName);
         } catch (e) {
+            if (util.isFunction(reporter.error)) {
+                //report load to localStorage error;
+                reporter.error('cache chunk error ', e.message);
+            }
             return null;
         }
     }

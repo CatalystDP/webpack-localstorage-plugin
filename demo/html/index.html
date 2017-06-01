@@ -19,9 +19,16 @@
             window.webpack_local_cache.init({
                 publicPath:'../dist/',
                 // disableCache:true,
-                manifest:window.webpackLocalcacheManifest
+                // disableLog:true,
+                manifest:window.webpackLocalcacheManifest,
+                reporter:{
+                    error:function(err){
+                        console.log(err);
+                    }
+                }
             });
-            window.webpack_local_cache.loadChunks(['vendor','app'],function(){
+            window.webpack_local_cache.loadChunks(['vendor','app'],function(result){
+                console.log('load result ',result);
                 window.runApp();
             });
         </script>
