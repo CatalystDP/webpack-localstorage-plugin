@@ -1,0 +1,23 @@
+{
+  "name": "webpack-localcache-plugin",
+  "version": "1.0.0",
+  "description": "Cache js into localStorage for mobile web",
+  "main": "null",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-demo":"cd ./demo && ../node_modules/webpack/bin/webpack.js",
+    "debug":"node --debug-brk ./node_modules/webpack/bin/webpack.js --config ./demo/webpack.config.js"
+  },
+  "keywords": [
+    "localStorage"
+  ],
+  "author": "CatalystDP",
+  "license": "MIT",
+  "dependencies": {
+    "webpack-sources": "^0.2.3"
+  },
+  "devDependencies": {
+    "webpack": "^2.4.1",
+    "webpack-chunk-hash": "^0.4.0"
+  }
+}

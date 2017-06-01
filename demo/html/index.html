@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <script src="../../localCacheHelper.js"></script>
+        <script src="../dist/localcacheManifest.js"></script>
+        <script src="../polyfills/promise.js"></script>
+        <script src="../dist/js/manifest.js"></script>
+        <script>
+            window.webpack_local_cache.init({
+                publicPath:'../dist/',
+                // disableCache:true,
+                manifest:window.webpackLocalcacheManifest
+            });
+            window.webpack_local_cache.loadChunks(['vendor','app'],function(){
+                window.runApp();
+            });
+        </script>
+    </body>
+</html>
