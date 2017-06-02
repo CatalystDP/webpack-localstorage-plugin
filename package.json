@@ -1,8 +1,8 @@
 {
   "name": "webpack-localcache-plugin",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Cache js into localStorage for mobile web",
-  "main": "null",
+  "main": "lib/LocalStoragePlugin.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-demo":"cd ./demo && ../node_modules/webpack/bin/webpack.js",

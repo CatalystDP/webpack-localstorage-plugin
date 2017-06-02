@@ -125,4 +125,5 @@
 			- result.failedChunks `array` 表示那些chunk没有正确加载
 	- getConfigs 获取init时传入的配置对象
 	- getInstalledChunks 获取已经加载的chunk
-	
+#### 0x04 TODO
+- url combo
