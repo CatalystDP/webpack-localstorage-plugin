@@ -37,7 +37,7 @@
     };
     var CACHE_FN_PREFIX = 'window.webpack_local_cache=window.webpack_local_cache||function(fn){fn()};' +
         'webpack_local_cache(';//加上一些容错机制
-    var CACHE_FN_SUFFIX = ')';
+    var CACHE_FN_SUFFIX = ');';
     var cachePrefix = 'chunk_';
     var isInited = false, entryLoaded = false;
     var option, publicPath, manifestObj;
@@ -102,22 +102,23 @@
         if (!util.isArray(chunks)) return;
         var manifest = manifestObj || {};
         var len = chunks.length, count = 0;
-        function onLoad(triggerExec) {
+        function onLoad(inc) {
             this.onload = null;
-            ++count;
-            if (count == len || triggerExec === true) {
+            // ++count;
+            count+=inc;
+            if (count == len) {
                 var failedChunks = [];
                 chunks.forEach(function (chunk) {
                     var chunkName = util.isObject(chunk) ? chunk.chunkName : chunk;
                     var installedChunk = installedChunks[chunkName];
                     if (installedChunk && !installedChunk.executed) {
                         var flag = true;
-                        if(util.isObject(chunk)){
-                            if(util.isObject(chunk.params)){
-                                if(chunk.params.lazy){
+                        if (util.isObject(chunk)) {
+                            if (util.isObject(chunk.params)) {
+                                if (chunk.params.lazy) {
                                     //delay exec 
-                                    util.log('chunk '+chunkName+' is delay execute');
-                                    flag=false;
+                                    util.log('chunk ' + chunkName + ' is delay execute');
+                                    flag = false;
                                 }
                             }
                         }
@@ -143,7 +144,7 @@
             }
         }
         var head = document.getElementsByTagName('head')[0];
-        var comboArr = [];
+        var comboArr = [], cacheChunkStr = '',cacheChunkCount=0;
         for (var i = 0; i < len; ++i) {
             var chunkName = chunks[i];
             if (util.isObject(chunkName)) {
@@ -151,12 +152,12 @@
             }
             var chunkInfo = manifest[chunkName];
             if (!chunkInfo) {
-                onLoad.call({});
+                onLoad.call({},1);
                 continue;
             }
             if (installedChunks[chunkName]) {
                 util.log('chunk ' + chunkName + ' is installed');
-                onLoad.call({});
+                onLoad.call({},1);
                 continue;
             }
             var cachedChunk = loadChunkFromCacahe(chunkName);
@@ -165,21 +166,20 @@
                 if (cachedChunk.hash == chunkInfo.hash) {
                     //load from localStorage when manifest hash equals to hash in localStorage
                     if (option.reporter && util.isFunction(option.reporter.beforeLoadCache) && (option.reporter.beforeLoadCache.call(null, cachedChunk.chunkName)));
-                    // installedChunks[cachedChunk.chunkName] = ChunkWrap(cachedChunk.chunkName, cachedChunk.hash, new Function('return ' + cachedChunk.fn)());
-                    var script = document.createElement('script');
-                    script.type = 'text/javascript';
-                    script.charset = 'utf-8';
-                    script.innerHTML = CACHE_FN_PREFIX + cachedChunk.fn + ",\"" + cachedChunk.chunkName + "\"," + "\"" + cachedChunk.hash + "\"" + CACHE_FN_SUFFIX;
-                    head.appendChild(script);
+                    cacheChunkStr += ''+CACHE_FN_PREFIX + cachedChunk.fn + ",\"" + cachedChunk.chunkName + "\"," + "\"" + cachedChunk.hash + "\"" + CACHE_FN_SUFFIX+'\n';
+                    ++cacheChunkCount;
                     if (option.reporter && util.isFunction(option.reporter.afterLoadCache) && (option.reporter.afterLoadCache.call(null, cachedChunk.chunkName)));
                     util.log('load chunk ' + chunkName, ' from localStorage');
-                    onLoad.call({});
+                   
                     continue;
                 }
             }
             var url = [publicPath, chunkInfo.fileName].join('');
             if (!option.combo) {
-                var script = createAsyncScript(url, onLoad);
+                var script = createAsyncScript(url,function(){
+                    this.onload=null;
+                    onLoad.call({},1);
+                });
                 util.log('load chunk ' + chunkName + ' from network');
                 head.appendChild(script);
             }
@@ -190,9 +190,17 @@
         if (option.combo && comboArr.length > 0 && util.isFunction(option.combo)) {
             var script = createAsyncScript(option.combo.call(null, comboArr), function () {
                 this.onload = null;
-                onLoad.call({}, true);//combo loaded and trigger exec
+                onLoad.call({},comboArr.length);//combo loaded and trigger exec
             })
             head.appendChild(script);
+        }
+        if (cacheChunkCount>0) {
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.charset = 'utf-8';
+            script.innerHTML = cacheChunkStr;
+            head.appendChild(script);
+            onLoad.call({},cacheChunkCount);
         }
     };
 
