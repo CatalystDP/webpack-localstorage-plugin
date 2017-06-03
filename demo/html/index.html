@@ -24,10 +24,26 @@
                 reporter:{
                     error:function(err){
                         console.log(err);
-                    }
+                    },
+                },
+                combo:function(arr){
+                    console.log(arr);
+                    var baseUrl='http://localhost:9999/combo/=';
+                    var p=[];
+                    arr.forEach(function(file){
+                        p.push('/dist/'+file);
+                    });
+                    var finalUrl=baseUrl+p.join(',');
+                    console.log(finalUrl);
+                    return finalUrl;
                 }
             });
-            window.webpack_local_cache.loadChunks(['vendor','app'],function(result){
+            window.webpack_local_cache.loadChunks(['vendor','app',{
+                chunkName:'asyncLiba',
+                params:{
+                    lazy:true//增加延迟执行参数
+                }
+            }],function(result){
                 console.log('load result ',result);
                 window.runApp();
             });

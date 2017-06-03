@@ -3,6 +3,9 @@
         is: function (obj, type) {
             return Object.prototype.toString.call(obj).replace(/\[|\]/g, '').substr(7).toLowerCase() === type;
         },
+        isObject: function (obj) {
+            return util.is(obj, 'object');
+        },
         isArray: function (obj) {
             return util.is(obj, 'array');
         },
@@ -10,7 +13,7 @@
             return util.is(obj, 'function');
         },
         log: function () {
-            if(option && option.disableLog) return;
+            if (option && option.disableLog) return;
             console.log.apply(console, arguments);
         },
         addParams: function (obj) {
@@ -33,8 +36,8 @@
         }
     };
     var CACHE_FN_PREFIX = 'window.webpack_local_cache=window.webpack_local_cache||function(fn){fn()};' +
-        'webpack_local_cache(function(){';//加上一些容错机制
-    var CACHE_FN_SUFFIX = '}';
+        'webpack_local_cache(';//加上一些容错机制
+    var CACHE_FN_SUFFIX = ')';
     var cachePrefix = 'chunk_';
     var isInited = false, entryLoaded = false;
     var option, publicPath, manifestObj;
@@ -46,7 +49,7 @@
             //disable cache
             return;
         }
-        if(!manifestObj[chunkName]){
+        if (!manifestObj[chunkName]) {
             return;
         }
         var cache = {
@@ -66,21 +69,21 @@
     root.webpack_local_cache.init = function (opt) {
         if (isInited) return;
         option = opt || {};
-        manifestObj = option.manifest||{};
+        manifestObj = option.manifest || {};
         publicPath = opt.publicPath;
         reporter = opt.reporter || {};
-        cachePrefix=option.cachePrefix||window.location.pathname;
+        cachePrefix = option.cachePrefix || window.location.pathname;
         if (!util.isSupportLocalStorage()) {
             option.disableCache = true;//disable cache when localStorage is not support
         }
         if (!option.disableCache) {
             //clear cached chunk which are not in manifest
-            for (var i=0, len = localStorage.length; i < len; ++i) {
+            for (var i = 0, len = localStorage.length; i < len; ++i) {
                 try {
-                    var key=localStorage.key(i);
-                    if(key && key.indexOf && key.indexOf(cachePrefix)>-1){
-                        if(!manifestObj.hasOwnProperty(key.replace(cachePrefix,''))){
-                            util.log('chunk '+key.replace(cachePrefix,'')+' will be removed');
+                    var key = localStorage.key(i);
+                    if (key && key.indexOf && key.indexOf(cachePrefix) > -1) {
+                        if (!manifestObj.hasOwnProperty(key.replace(cachePrefix, ''))) {
+                            util.log('chunk ' + key.replace(cachePrefix, '') + ' will be removed');
                             localStorage.removeItem(key);
                         }
                     }
@@ -89,47 +92,65 @@
         }
         isInited = true;
     };
-    root.webpack_local_cache.getConfigs=function(){
+    root.webpack_local_cache.getConfigs = function () {
         return option;
     };
-    root.webpack_local_cache.getInstalledChunks=function(){
+    root.webpack_local_cache.getInstalledChunks = function () {
         return installedChunks;
     };
     root.webpack_local_cache.loadChunks = function (chunks, onLoadEnd) {
         if (!util.isArray(chunks)) return;
         var manifest = manifestObj || {};
         var len = chunks.length, count = 0;
-        function onLoad() {
+        function onLoad(triggerExec) {
             this.onload = null;
             ++count;
-            if (count == len) {
-                var failedChunks=[];
+            if (count == len || triggerExec === true) {
+                var failedChunks = [];
                 chunks.forEach(function (chunk) {
-                    var installedChunk = installedChunks[chunk];
+                    var chunkName = util.isObject(chunk) ? chunk.chunkName : chunk;
+                    var installedChunk = installedChunks[chunkName];
                     if (installedChunk && !installedChunk.executed) {
-                        util.log('chunk ' + chunk + ' will execute');
-                        util.isFunction(installedChunk.fn) && installedChunk.fn.call(option.context||null);//context in fn
-                        installedChunk.executed = true;
+                        var flag = true;
+                        if(util.isObject(chunk)){
+                            if(util.isObject(chunk.params)){
+                                if(chunk.params.lazy){
+                                    //delay exec 
+                                    util.log('chunk '+chunkName+' is delay execute');
+                                    flag=false;
+                                }
+                            }
+                        }
+                        if (flag) {
+                            util.log('chunk ' + chunkName + ' will execute');
+                            util.isFunction(installedChunk.fn) && installedChunk.fn.call(option.context || null);//context in fn
+                            installedChunk.executed = true;
+                        }
                     }
-                    if(!installedChunk){
+                    if (!installedChunk) {
                         //chunk load fail call reporter
-                        failedChunks.push(chunk);
+                        failedChunks.push(chunkName);
                     }
                 });
-                var loadStatus={
-                    status:'success'
+                var loadStatus = {
+                    status: 'success'
                 };
-                if(failedChunks.length>0){
-                    loadStatus.status='failed';
-                    loadStatus.failedChunks=failedChunks;
+                if (failedChunks.length > 0) {
+                    loadStatus.status = 'failed';
+                    loadStatus.failedChunks = failedChunks;
                 }
                 util.isFunction(onLoadEnd) && onLoadEnd(loadStatus);
             }
         }
+        var head = document.getElementsByTagName('head')[0];
+        var comboArr = [];
         for (var i = 0; i < len; ++i) {
             var chunkName = chunks[i];
+            if (util.isObject(chunkName)) {
+                chunkName = chunkName.chunkName;
+            }
             var chunkInfo = manifest[chunkName];
-            if(!chunkInfo){
+            if (!chunkInfo) {
                 onLoad.call({});
                 continue;
             }
@@ -143,20 +164,34 @@
                 cachedChunk = JSON.parse(cachedChunk);
                 if (cachedChunk.hash == chunkInfo.hash) {
                     //load from localStorage when manifest hash equals to hash in localStorage
-                    installedChunks[cachedChunk.chunkName] = ChunkWrap(cachedChunk.chunkName, cachedChunk.hash, new Function('return ' + cachedChunk.fn)());
+                    if (option.reporter && util.isFunction(option.reporter.beforeLoadCache) && (option.reporter.beforeLoadCache.call(null, cachedChunk.chunkName)));
+                    // installedChunks[cachedChunk.chunkName] = ChunkWrap(cachedChunk.chunkName, cachedChunk.hash, new Function('return ' + cachedChunk.fn)());
+                    var script = document.createElement('script');
+                    script.type = 'text/javascript';
+                    script.charset = 'utf-8';
+                    script.innerHTML = CACHE_FN_PREFIX + cachedChunk.fn + ",\"" + cachedChunk.chunkName + "\"," + "\"" + cachedChunk.hash + "\"" + CACHE_FN_SUFFIX;
+                    head.appendChild(script);
+                    if (option.reporter && util.isFunction(option.reporter.afterLoadCache) && (option.reporter.afterLoadCache.call(null, cachedChunk.chunkName)));
                     util.log('load chunk ' + chunkName, ' from localStorage');
                     onLoad.call({});
                     continue;
                 }
             }
-            var head = document.getElementsByTagName('head')[0];
-            var script = document.createElement('script');
-            script.type = 'text/javascript';
-            script.charset = 'utf-8';
-            script.async = true;
-            script.onload = onLoad;
-            script.src = [publicPath, chunkInfo.fileName].join('');
-            util.log('load chunk ' + chunkName + ' from network');
+            var url = [publicPath, chunkInfo.fileName].join('');
+            if (!option.combo) {
+                var script = createAsyncScript(url, onLoad);
+                util.log('load chunk ' + chunkName + ' from network');
+                head.appendChild(script);
+            }
+            else {
+                comboArr.push(chunkInfo.fileName);
+            }
+        }
+        if (option.combo && comboArr.length > 0 && util.isFunction(option.combo)) {
+            var script = createAsyncScript(option.combo.call(null, comboArr), function () {
+                this.onload = null;
+                onLoad.call({}, true);//combo loaded and trigger exec
+            })
             head.appendChild(script);
         }
     };
@@ -195,6 +230,15 @@
             fn: fn,
             executed: false
         }
+    }
+    function createAsyncScript(url, onload) {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.charset = 'utf-8';
+        script.async = true;
+        script.onload = onload;
+        script.src = url;
+        return script;
     }
 })(window);
 

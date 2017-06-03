@@ -100,31 +100,36 @@
 	
 	`new LocalStoragePlugin(opt)`
 	
-	opt `{object}` 配置对象
-	- opt.manifestName 生成的manifest文件名
-	- opt.manifestFormat 生成格式`json|js`，default:`json`
-	- opt.manifestVariableName 当`manifestFormat`为`js`时才有用，配置了这个之后生成的js文件内容为`window['mainfestVariableName']={}`;
-	- opt.ignoreChunks `{array}` 忽略的chunk名称的数组
+	`opt` `{object}` 配置对象
+	- `opt.manifestName` 生成的manifest文件名
+	- `opt.manifestFormat` 生成格式`json|js`，default:`json`
+	- `opt.manifestVariableName` 当`manifestFormat`为`js`时才有用，配置了这个之后生成的js文件内容为`window['mainfestVariableName']={}`;
+	- `opt.ignoreChunks` `{array}` 忽略的chunk名称的数组
 
 2. localcacheHelper.js API
 
 	所有的api都在`webpack_local_cache`这个对象上
-	- init(opt:object) 初始化helper
-		- opt.manifest 插件生成的manifest对象
-		- opt.publicPath 线上资源引用路径
-		- opt.reporter `{object}` 上报对象
-			- opt.reporter.error `{function}` 错误信息上报的函数
-		- opt.cachePrefix localStorage key的前缀，默认使用当前页面路径作为前缀
-		- opt.disableCache 传`true`时，不会使用localStorage当中的代码
-		- opt.context 调用包装函数时的上下文，默认为`null`，有时需要传window，特别是在配合webpack dllPlugin时需要用到。
-		- opt.disableLog 禁用log输出。
-	- loadChunks(chunks:array,onLoadEnd:function)
-		- chunks 需要加载的chunk列表，并且chunk也会按照这个顺序执行
-		- onLoadEnd(result:object) 加载完成回调，并且会传入结果对象
-			- result.status `success|fail`
-			- result.failedChunks `array` 表示那些chunk没有正确加载
-	- getConfigs 获取init时传入的配置对象
-	- getInstalledChunks 获取已经加载的chunk
+	- `init(opt:object)` 初始化helper
+		- `opt.manifest` 插件生成的manifest对象
+		- `opt.publicPath` 线上资源引用路径
+		- `opt.reporter` `{object}` 上报对象
+			- `opt.reporter.error` `{function}` 错误信息上报的函数
+		- `opt.cachePrefix` localStorage key的前缀，默认使用当前页面路径作为前缀
+		- `opt.disableCache` 传`true`时，不会使用localStorage当中的代码
+		- `opt.context` 调用包装函数时的上下文，默认为`null`，有时需要传window，特别是在配合webpack dllPlugin时需要用到。
+		- `opt.disableLog` 禁用log输出。
+		- `opt.combo {function}` 对加载的资源进行combo，该函数需要返回一个combo之后的url。
+	- `loadChunks(chunks:array,onLoadEnd:function)`
+		- `chunks {array}` 需要加载的chunk列表，并且chunk也会按照这个顺序执行
+		   - `string|object`，当chunk是对象时，需要包含如下字段。
+		  	  - `chunk.chunkName` chunk名名称
+		  	  - `chunk.params {object}`
+		  	     - `chunk.params.lazy {boolean}` 是否延迟执行该chunk
+		- `onLoadEnd(result:object)` 加载完成回调，并且会传入结果对象
+			- `result.status` `success|fail`
+			- `result.failedChunks` `array` 表示那些chunk没有正确加载，只有在状态是fail的时候才有这个数组
+	- `getConfigs` 获取init时传入的配置对象
+	- `getInstalledChunks` 获取已经加载的chunk
 
 #### 0x04 TODO
-- url combo
+- 优化加载
