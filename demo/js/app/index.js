@@ -10,4 +10,7 @@ window.runApp = function () {
 
         }, 'asyncLiba');
     });
+    require.ensure([],function(require){
+        require('../mod/anonymousAsyncLib');
+    });
 };

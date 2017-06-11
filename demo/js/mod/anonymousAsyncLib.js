@@ -1,0 +1,1 @@
+console.log('in anonymous async lib')

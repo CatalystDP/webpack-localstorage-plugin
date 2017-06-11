@@ -3,7 +3,6 @@
 const webpack = require('webpack'),
     path = require('path');
 const WebpackChunkHash = require('webpack-chunk-hash');
-// const WebpackManifestPlugin=require('webpack-manifest-plugin');
 const LocalStoragePlugin=require('../lib/LocalStoragePlugin');
 const ROOTPATH=process.cwd();
 let config={
@@ -20,7 +19,7 @@ let _config = {
     context: path.join(ROOTPATH,'js'),
     output: {
         path: config.DISTPATH,
-        publicPath: '../dist',
+        publicPath: '../dist/',
         filename: 'js/[name].[chunkhash].js',
         chunkFilename: 'js/[name].[chunkhash].js'
     },
