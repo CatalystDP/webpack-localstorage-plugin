@@ -5,9 +5,9 @@
   "main": "lib/LocalStoragePlugin.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "combo-server":"cd ./demo && node ./combo-server/combo.js --port 9999",
+    "combo-server": "cd ./demo && node ./combo-server/combo.js --port 9999",
     "build-demo": "cd ./demo && ../node_modules/webpack/bin/webpack.js",
-    "debug": "node --debug-brk ./node_modules/webpack/bin/webpack.js --config ./demo/webpack.config.js"
+    "debug": "cd ./demo && node --debug-brk ../node_modules/webpack/bin/webpack.js"
   },
   "keywords": [
     "localStorage"
@@ -20,7 +20,8 @@
   "devDependencies": {
     "webpack": "^2.4.1",
     "webpack-chunk-hash": "^0.4.0",
-    "yargs": "^8.0.1"
+    "yargs": "^8.0.1",
+    "webpack-plugin-hash-output": "^1.3.0"
   },
   "repository": {
     "type": "git",

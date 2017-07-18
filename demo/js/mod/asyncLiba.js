@@ -1,2 +1,2 @@
 console.log('in asyncLiba','hffff');
-console.log('async a ');
+// console.log('async a ');

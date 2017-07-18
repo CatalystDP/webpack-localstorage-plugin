@@ -4,6 +4,7 @@ const webpack = require('webpack'),
     path = require('path');
 const WebpackChunkHash = require('webpack-chunk-hash');
 const LocalStoragePlugin=require('../lib/LocalStoragePlugin');
+const WebpackOutputHash=require('webpack-plugin-hash-output');
 const ROOTPATH=process.cwd();
 let config={
     DISTPATH:path.join(ROOTPATH,'dist'),
@@ -20,10 +21,10 @@ let _config = {
     output: {
         path: config.DISTPATH,
         publicPath: '../dist/',
-        filename: 'js/[name].[chunkhash].js',
-        chunkFilename: 'js/[name].[chunkhash].js'
+        filename: 'js/[name].[chunkHash].js',
+        chunkFilename: 'js/[name].[chunkHash].js'
     },
-    watch:true,
+    // watch:true,
     plugins: [
         new webpack.optimize.CommonsChunkPlugin({
             name: 'vendor',
@@ -38,22 +39,24 @@ let _config = {
             filename: 'js/manifest.js'
         }),
         new webpack.HashedModuleIdsPlugin(),
-        new WebpackChunkHash(),
+        new WebpackOutputHash(),
+        // new WebpackChunkHash(),
         // new WebpackManifestPlugin({
         //     fileName:'manifest.json'
         // }),
         // new chunkManifestPlugin(config.chunkManifestConfig.app),
         new LocalStoragePlugin({
             ignoreChunks:['manifest'],
+            // includeChunks:['app','vendor'],
             manifestName:'localcacheManifest.js',
             manifestFormat:'js',
             manifestVariableName:'webpackLocalcacheManifest'
         }),
-        // new webpack.optimize.UglifyJsPlugin({
-        //     mangleProperties:{
-        //         reserved:['webpack_local_cache']
-        //     }
-        // }),
+        new webpack.optimize.UglifyJsPlugin({
+            mangleProperties:{
+                reserved:['webpack_local_cache']
+            }
+        }),
     ],
     module: {
         rules: [
