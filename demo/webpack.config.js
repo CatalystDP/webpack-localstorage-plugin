@@ -52,11 +52,11 @@ let _config = {
             manifestFormat:'js',
             manifestVariableName:'webpackLocalcacheManifest'
         }),
-        new webpack.optimize.UglifyJsPlugin({
-            mangleProperties:{
-                reserved:['webpack_local_cache']
-            }
-        }),
+        // new webpack.optimize.UglifyJsPlugin({
+        //     mangleProperties:{
+        //         reserved:['webpack_local_cache']
+        //     }
+        // }),
     ],
     module: {
         rules: [

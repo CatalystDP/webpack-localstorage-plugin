@@ -105,7 +105,7 @@
         function onLoad(inc) {
             this.onload = null;
             // ++count;
-            count+=inc;
+            count += inc;
             if (count == len) {
                 var failedChunks = [];
                 chunks.forEach(function (chunk) {
@@ -144,7 +144,7 @@
             }
         }
         var head = document.getElementsByTagName('head')[0];
-        var comboArr = [], cacheChunkStr = '',cacheChunkCount=0;
+        var comboArr = [], cacheChunkStr = '', cacheChunkCount = 0;
         for (var i = 0; i < len; ++i) {
             var chunkName = chunks[i];
             if (util.isObject(chunkName)) {
@@ -152,12 +152,12 @@
             }
             var chunkInfo = manifest[chunkName];
             if (!chunkInfo) {
-                onLoad.call({},1);
+                onLoad.call({}, 1);
                 continue;
             }
             if (installedChunks[chunkName]) {
                 util.log('chunk ' + chunkName + ' is installed');
-                onLoad.call({},1);
+                onLoad.call({}, 1);
                 continue;
             }
             var cachedChunk = loadChunkFromCacahe(chunkName);
@@ -166,41 +166,47 @@
                 if (cachedChunk.hash == chunkInfo.hash) {
                     //load from localStorage when manifest hash equals to hash in localStorage
                     if (option.reporter && util.isFunction(option.reporter.beforeLoadCache) && (option.reporter.beforeLoadCache.call(null, cachedChunk.chunkName)));
-                    cacheChunkStr += ''+CACHE_FN_PREFIX + cachedChunk.fn + ",\"" + cachedChunk.chunkName + "\"," + "\"" + cachedChunk.hash + "\"" + CACHE_FN_SUFFIX+'\n';
+                    cacheChunkStr += '' + CACHE_FN_PREFIX + cachedChunk.fn + ",\"" + cachedChunk.chunkName + "\"," + "\"" + cachedChunk.hash + "\"" + CACHE_FN_SUFFIX + '\n';
                     ++cacheChunkCount;
                     if (option.reporter && util.isFunction(option.reporter.afterLoadCache) && (option.reporter.afterLoadCache.call(null, cachedChunk.chunkName)));
                     util.log('load chunk ' + chunkName, ' from localStorage');
-                   
+
                     continue;
                 }
             }
             var url = [publicPath, chunkInfo.fileName].join('');
             if (!option.combo) {
-                var script = createAsyncScript(url,function(){
-                    this.onload=null;
-                    onLoad.call({},1);
+                var method = option.useAjax ? createAjaxScript : createAsyncScript;
+                var script = method(url, function () {
+                    this.onload = null;
+                    onLoad.call({}, 1);
                 });
                 util.log('load chunk ' + chunkName + ' from network');
-                head.appendChild(script);
+                if (script) {
+                    head.appendChild(script);
+                }
             }
             else {
                 comboArr.push(chunkInfo.fileName);
             }
         }
         if (option.combo && comboArr.length > 0 && util.isFunction(option.combo)) {
-            var script = createAsyncScript(option.combo.call(null, comboArr), function () {
+            var method = option.useAjax ? createAjaxScript : createAsyncScript;
+            var script = method(option.combo.call(null, comboArr), function () {
                 this.onload = null;
-                onLoad.call({},comboArr.length);//combo loaded and trigger exec
-            })
-            head.appendChild(script);
+                onLoad.call({}, comboArr.length);//combo loaded and trigger exec
+            });
+            if (script) {
+                head.appendChild(script);
+            }
         }
-        if (cacheChunkCount>0) {
+        if (cacheChunkCount > 0) {
             var script = document.createElement('script');
             script.type = 'text/javascript';
             script.charset = 'utf-8';
             script.innerHTML = cacheChunkStr;
             head.appendChild(script);
-            onLoad.call({},cacheChunkCount);
+            onLoad.call({}, cacheChunkCount);
         }
     };
 
@@ -216,7 +222,7 @@
             util.log('save localStorage exception ', e);
             if (util.isFunction(reporter.error)) {
                 //report save to localStorage error;
-                reporter.error('cache chunk error ', e.message);
+                reporter.error('cache_chunk_error ', e.message);
             }
         }
     }
@@ -226,7 +232,7 @@
         } catch (e) {
             if (util.isFunction(reporter.error)) {
                 //report load to localStorage error;
-                reporter.error('cache chunk error ', e.message);
+                reporter.error('cache_chunk_error ', e.message);
             }
             return null;
         }
@@ -247,6 +253,48 @@
         script.onload = onload;
         script.src = url;
         return script;
+    }
+    //onerror callback will be called when status
+    function createAjaxScript(url, onload, onerror) {
+        var ajax = new XMLHttpRequest();
+        ajax.onreadystatechange = function () {
+            if (ajax.readyState == 4) {
+                if (ajax.status >= 200 && ajax.status < 300) {
+                    var head = document.getElementsByTagName('head')[0];
+                    var script = document.createElement('script');
+                    script.type = 'text/javascript';
+                    script.charset = 'utf-8';
+                    script.innerHTML = ajax.responseText;
+                    head.appendChild(script);
+                } else {
+                    if (util.isFunction(option.reporter.error)) {
+                        //report load js error;
+                        //
+                        option.reporter.error('js_load_fail', JSON.stringify({
+                            status: ajax.status,
+                            url: url
+                        }));
+                    }
+                }
+                console.log('ready state change');
+                onload.call({});
+            }
+        };
+        //load fail
+        ajax.onerror = function () {
+            if (util.isFunction(onerror)) {
+                onerror();
+            }
+            if (util.isFunction(option.reporter.error)) {
+                //report load to localStorage error;
+                option.reporter.error('js_load_fail', JSON.stringify({
+                    status: 0,
+                    url: url
+                }));
+            }
+        };
+        ajax.open('GET', url, true);
+        ajax.send(null);
     }
 })(window);
 

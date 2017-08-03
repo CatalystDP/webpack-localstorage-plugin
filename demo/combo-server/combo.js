@@ -8,7 +8,11 @@ let server = http.createServer();
 
 server.on('request', (req, res) => {
     console.log('req url ' + req.url);
+    // return res.socket.destroy(); 
     if (req.url.indexOf('/combo') != -1) {
+        res.writeHead('200',{
+            'Access-Control-Allow-Origin':'*'
+        });
         let fileNames = req.url.match(/\/combo\/\=(.+)/);
         if (fileNames && fileNames[1]) {
             let files = fileNames[1].split(',');
@@ -22,7 +26,7 @@ server.on('request', (req, res) => {
         }
         res.end();
     } else {
-
+        res.writeHead('403','Forbidden')
         res.end('only use for combo');
     }
 });
