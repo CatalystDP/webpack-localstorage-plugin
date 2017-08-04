@@ -278,7 +278,6 @@
                         }));
                     }
                 }
-                console.log('ready state change');
                 onload.call({});
             }
         };
