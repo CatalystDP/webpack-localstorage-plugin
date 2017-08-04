@@ -68,10 +68,12 @@
      */
     root.webpack_local_cache.init = function (opt) {
         if (isInited) return;
-        option = opt || {};
+        opt=opt||{};
+        option = opt;
         manifestObj = option.manifest || {};
         publicPath = opt.publicPath;
-        reporter = opt.reporter || {};
+        opt.reporter=opt.reporter||{};
+        reporter = opt.reporter;
         cachePrefix = option.cachePrefix || window.location.pathname;
         if (!util.isSupportLocalStorage()) {
             option.disableCache = true;//disable cache when localStorage is not support
