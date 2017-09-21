@@ -43,7 +43,7 @@
     var option, publicPath, manifestObj;
     var reporter;
     var installedChunks = {};
-    root.webpack_local_cache = function (fn, chunkName, hash) {
+    root.webpack_local_cache = function (fn, chunkName, hash,fromCache) {
         var c = installedChunks[chunkName] = ChunkWrap(chunkName, hash, fn);
         if (option.disableCache) {
             //disable cache
@@ -52,12 +52,23 @@
         if (!manifestObj[chunkName]) {
             return;
         }
+        if(manifestObj[chunkName].hash!=hash){
+            /**
+             * 
+             *if hash in manifest no equal to hash loaded from outside do not  *save to cache
+             */
+            util.log('load hash not equal to hash in manifest');
+            return;
+        }
         var cache = {
             chunkName: chunkName,
             hash: hash,
             fn: fn.toString()
         }
-        saveChunkToCache(cache);
+        if(!fromCache){
+            util.log('save to cache');
+            !fromCache && saveChunkToCache(cache);
+        }
     };
     /**
      * @param object opt
@@ -68,11 +79,11 @@
      */
     root.webpack_local_cache.init = function (opt) {
         if (isInited) return;
-        opt=opt||{};
+        opt = opt || {};
         option = opt;
         manifestObj = option.manifest || {};
         publicPath = opt.publicPath;
-        opt.reporter=opt.reporter||{};
+        opt.reporter = opt.reporter || {};
         reporter = opt.reporter;
         cachePrefix = option.cachePrefix || window.location.pathname;
         if (!util.isSupportLocalStorage()) {
@@ -126,7 +137,14 @@
                         }
                         if (flag) {
                             util.log('chunk ' + chunkName + ' will execute');
-                            util.isFunction(installedChunk.fn) && installedChunk.fn.call(option.context || null);//context in fn
+                            try {
+                                util.isFunction(installedChunk.fn) && installedChunk.fn.call(option.context || null);//context in fn
+                            } catch (e) {
+                                if(opt.reporter){
+                                    //report js exec error
+                                    util.isFunction(opt.reporter.error) && opt.reporter.error('exec_js_error',e.message);
+                                }
+                            }
                             installedChunk.executed = true;
                         }
                     }
@@ -168,7 +186,7 @@
                 if (cachedChunk.hash == chunkInfo.hash) {
                     //load from localStorage when manifest hash equals to hash in localStorage
                     if (option.reporter && util.isFunction(option.reporter.beforeLoadCache) && (option.reporter.beforeLoadCache.call(null, cachedChunk.chunkName)));
-                    cacheChunkStr += '' + CACHE_FN_PREFIX + cachedChunk.fn + ",\"" + cachedChunk.chunkName + "\"," + "\"" + cachedChunk.hash + "\"" + CACHE_FN_SUFFIX + '\n';
+                    cacheChunkStr += '' + CACHE_FN_PREFIX + cachedChunk.fn + ",\"" + cachedChunk.chunkName + "\"," + "\"" + cachedChunk.hash + "\"" +",true" +CACHE_FN_SUFFIX + '\n';
                     ++cacheChunkCount;
                     if (option.reporter && util.isFunction(option.reporter.afterLoadCache) && (option.reporter.afterLoadCache.call(null, cachedChunk.chunkName)));
                     util.log('load chunk ' + chunkName, ' from localStorage');
@@ -216,7 +234,7 @@
     function saveChunkToCache(cache) {
         var key = cachePrefix + cache.chunkName;
         try {
-            //for some ios problem remove key before set
+            //for some ios problem remove key before se
             localStorage.removeItem(key);
             localStorage.setItem(key, JSON.stringify(cache));
         } catch (e) {

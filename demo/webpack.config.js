@@ -21,8 +21,8 @@ let _config = {
     output: {
         path: config.DISTPATH,
         publicPath: '../dist/',
-        filename: 'js/[name].[chunkHash].js',
-        chunkFilename: 'js/[name].[chunkHash].js'
+        filename: 'js/[name].js?v=[chunkhash]',
+        chunkFilename: 'js/[name].js?v=[chunkhash]'
     },
     // watch:true,
     plugins: [

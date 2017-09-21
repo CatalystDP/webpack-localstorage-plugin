@@ -1,7 +1,7 @@
 window.runApp = function () {
     require('../vendor/liba').sayHello();
     require('../vendor/libb').sayHello();
-    console.log('in app index.js');
+    console.log('in app index.');
     window.webpack_local_cache.loadChunks(['asyncLiba'], function (result) {
         console.log('load status ', result);
         require.ensure([], function (require) {

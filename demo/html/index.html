@@ -27,17 +27,17 @@
                     },
                 },
                 useAjax:true,
-                combo:function(arr){
-                    console.log(arr);
-                    var baseUrl='http://localhost:9999/combo/=';
-                    var p=[];
-                    arr.forEach(function(file){
-                        p.push('/dist/'+file);
-                    });
-                    var finalUrl=baseUrl+p.join(',');
-                    console.log(finalUrl);
-                    return finalUrl;
-                }
+                // combo:function(arr){
+                //     console.log(arr);
+                //     var baseUrl='http://localhost:9999/combo/=';
+                //     var p=[];
+                //     arr.forEach(function(file){
+                //         p.push('/dist/'+file);
+                //     });
+                //     var finalUrl=baseUrl+p.join(',');
+                //     console.log(finalUrl);
+                //     return finalUrl;
+                // }
             });
             window.webpack_local_cache.loadChunks(['vendor','app',{
                 chunkName:'asyncLiba',
