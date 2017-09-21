@@ -1,6 +1,6 @@
 {
   "name": "webpack-localcache-plugin",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Cache js into localStorage for mobile web",
   "main": "lib/LocalStoragePlugin.js",
   "scripts": {
