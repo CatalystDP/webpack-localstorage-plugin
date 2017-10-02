@@ -43,7 +43,7 @@
     var option, publicPath, manifestObj;
     var reporter;
     var installedChunks = {};
-    root.webpack_local_cache = function (fn, chunkName, hash,fromCache) {
+    root.webpack_local_cache = function (fn, chunkName, hash, fromCache) {
         var c = installedChunks[chunkName] = ChunkWrap(chunkName, hash, fn);
         if (option.disableCache) {
             //disable cache
@@ -52,7 +52,7 @@
         if (!manifestObj[chunkName]) {
             return;
         }
-        if(manifestObj[chunkName].hash!=hash){
+        if (manifestObj[chunkName].hash != hash) {
             /**
              * 
              *if hash in manifest no equal to hash loaded from outside do not  *save to cache
@@ -65,7 +65,7 @@
             hash: hash,
             fn: fn.toString()
         }
-        if(!fromCache){
+        if (!fromCache) {
             util.log('save to cache');
             !fromCache && saveChunkToCache(cache);
         }
@@ -137,14 +137,7 @@
                         }
                         if (flag) {
                             util.log('chunk ' + chunkName + ' will execute');
-                            try {
-                                util.isFunction(installedChunk.fn) && installedChunk.fn.call(option.context || null);//context in fn
-                            } catch (e) {
-                                if(opt.reporter){
-                                    //report js exec error
-                                    util.isFunction(opt.reporter.error) && opt.reporter.error('exec_js_error',e.message);
-                                }
-                            }
+                            util.isFunction(installedChunk.fn) && installedChunk.fn.call(option.context || null);//context in fn
                             installedChunk.executed = true;
                         }
                     }
@@ -186,7 +179,7 @@
                 if (cachedChunk.hash == chunkInfo.hash) {
                     //load from localStorage when manifest hash equals to hash in localStorage
                     if (option.reporter && util.isFunction(option.reporter.beforeLoadCache) && (option.reporter.beforeLoadCache.call(null, cachedChunk.chunkName)));
-                    cacheChunkStr += '' + CACHE_FN_PREFIX + cachedChunk.fn + ",\"" + cachedChunk.chunkName + "\"," + "\"" + cachedChunk.hash + "\"" +",true" +CACHE_FN_SUFFIX + '\n';
+                    cacheChunkStr += '' + CACHE_FN_PREFIX + cachedChunk.fn + ",\"" + cachedChunk.chunkName + "\"," + "\"" + cachedChunk.hash + "\"" + ",true" + CACHE_FN_SUFFIX + '\n';
                     ++cacheChunkCount;
                     if (option.reporter && util.isFunction(option.reporter.afterLoadCache) && (option.reporter.afterLoadCache.call(null, cachedChunk.chunkName)));
                     util.log('load chunk ' + chunkName, ' from localStorage');
