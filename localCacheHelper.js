@@ -60,14 +60,15 @@
             util.log('load hash not equal to hash in manifest');
             return;
         }
-        var cache = {
-            chunkName: chunkName,
-            hash: hash,
-            fn: fn.toString()
-        }
         if (!fromCache) {
+            //load from network can be cache
+            var cache = {
+                chunkName: chunkName,
+                hash: hash,
+                fn: fn.toString()
+            }
             util.log('save to cache');
-            !fromCache && saveChunkToCache(cache);
+            saveChunkToCache(cache);
         }
     };
     /**
