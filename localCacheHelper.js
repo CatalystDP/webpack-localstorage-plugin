@@ -192,7 +192,7 @@
             if (!option.combo) {
                 var method = option.useAjax ? createAjaxScript : createAsyncScript;
                 var script = method(url, function () {
-                    this.onload = null;
+                    this.onload = this.onerror =null;
                     onLoad.call({}, 1);
                 });
                 util.log('load chunk ' + chunkName + ' from network');
@@ -207,7 +207,7 @@
         if (option.combo && comboArr.length > 0 && util.isFunction(option.combo)) {
             var method = option.useAjax ? createAjaxScript : createAsyncScript;
             var script = method(option.combo.call(null, comboArr), function () {
-                this.onload = null;
+                this.onload = this.onerror =null;
                 onLoad.call({}, comboArr.length);//combo loaded and trigger exec
             });
             if (script) {
@@ -264,7 +264,7 @@
         script.type = 'text/javascript';
         script.charset = 'utf-8';
         script.async = true;
-        script.onload = onload;
+        script.onload = script.onerror =onload;
         script.src = url;
         return script;
     }
